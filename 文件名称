@@ -1,0 +1,11 @@
+import os
+
+# 指定文件夹路径
+folder_path = 'D:\\MODSWXB\\ModTool\\skinmaker\\Example Skin\\sprites'
+
+# 获取所有文件名
+file_names = os.listdir(folder_path)
+
+# 打印结果
+for name in file_names:
+    print(name)

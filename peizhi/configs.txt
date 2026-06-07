@@ -1,0 +1,428 @@
+// ====================== B站Code配置 ======================
+[BilibiliCode]
+Code =F46536JNQRCW0
+[SerialVerify]
+SerialNumber = 296840217L5hfxvB
+// ====================== 弹幕映射配置 ======================
+// 格式：指令名=触发关键词
+[enter]
+3简单怪
+[dianzan]
+加血
+随机1诅咒
+[DanmuMapping]
+毒 = 中毒
+创建英雄 = 创建英雄
+传送监狱 = 天灵灵地灵灵原神牛逼
+加卷轴 = 加卷
+加血 = 奶一口
+扣血 = 扣血
+幸运星 = 幸运星
+3简单怪 = 简单怪
+满疫病 = 满疫病
+消除疫病 = 净
+5超级怪 = 超级怪
+卷轴-1 = 减
+德古拉反转 = 反转
+7秒怪回血 = 内鬼
+推一下 = 起飞
+往左推 = 左飞
+往后推 = 后飞
+放技能左 = 技能右
+放技能右 = 技能左
+大小变 = 大小变
+怪隐身 = 怪隐身
+诅咒 = 咒
+门复仇 = 文明开门
+更换武器 = 更换武器
+升级 = 升级
+跳一跳 = 跳
+物理加速 = 物理加速
+加速 = 物理加速
+减速 = 缓
+不许动 = 停
+更换皮肤 = 更换皮肤
+随机道具 = 投喂
+上一关 = 上一关
+下一关 = 下一关
+宝箱怪 = 宝箱怪
+晕一下=晕一下
+下移视角=下移视角
+冻住=冻住
+护盾=护盾
+上移视角=上移视角
+石化=111232322
+玩家隐身=玩家隐身
+加速buff=加速效果
+天使头环=天使头环
+火烧=火烧
+流血=流血
+颠倒方向 = 颠倒方向
+增伤 = 增伤
+减伤 = 减伤
+碰撞伤害 = 碰撞伤害
+加一条命 = 加一条命
+
+// 新增：弹幕指令等级门槛配置
+[DanmuLevel]
+加卷轴 = 0         
+加血 = 0           
+3简单怪 = 0       
+满疫病 = 0          
+消除疫病 = 0        
+5超级怪 = 0        
+卷轴-1 = 0          
+德古拉反转 = 0   
+7秒怪回血 = 0     
+推一下 = 0    
+往左推 = 0
+往后推 = 0 
+放技能左 = 0
+放技能右 = 0
+大小变 = 0        
+隐身 = 0            
+诅咒 = 1
+门复仇 = 0       
+更换武器 = 0      
+升级 = 0           
+跳一跳 = 0     
+加速 = 0           
+减速 = 0            
+不许动 = 0        
+更换皮肤 = 0      
+随机道具=0
+// ====================== 礼物映射配置 ======================
+// 格式：指令名=礼物关键词
+[GiftMapping]
+3简单怪 = 小心心
+加速buff = 粉丝团灯牌
+德古拉反转 = 上车票
+7秒怪回血 = 你真好看
+推一下 = 春节快乐
+5超级怪 = 人气票
+门复仇 = 抖音一号
+石化 = 大啤酒
+不许动 = 抖音
+上一关 = 加油鸭
+下一关 = Thuglife
+随机道具 = 玫瑰
+往左推 = asdfadsa
+
+// ====================== 皮肤ID配置 ======================
+[SkinIds]
+PrisonerDefault
+KingDefault
+KatanaZero
+BehemothDefault
+Behemoth1
+Behemoth2
+Behemoth3
+Behemoth4
+BeholderDefault
+Beholder1
+Beholder2
+Beholder3
+Beholder4
+AssassinDefault
+Assassin1
+Assassin2
+Assassin3
+Assassin4
+GiantDefault
+Giant1
+Giant2
+Giant3
+Giant4
+HotkDefault
+Hotk1
+Hotk2
+Hotk3
+Hotk4
+Statue
+CollectorDefault
+TickDefault
+Tick1
+Tick2
+Tick3
+Tick4
+TickSacrifice
+GardenerDefault
+Gardener1
+Gardener2
+Gardener3
+Gardener4
+Cultist
+FlawlessBehemoth
+FlawlessBeholder
+FlawlessAssassin
+FlawlessGiant
+FlawlessHotk
+FlawlessTick
+FlawlessGardener
+Snowman
+SantaKLOS
+HollowKnight
+Blasphemous
+Guacamelee
+Skul
+HyperLightDrifter
+CurseofTheDeadGods
+SoulKnight
+Staphy
+ANCHORGUY
+ServanteDefault
+Servante1
+Servante2
+Servante3
+Servante4
+FlawlessServante
+QueenDefault
+Queen1
+Queen2
+Queen3
+Queen4
+FlawlessQueen
+BlueErinaceus
+Banker
+GuillainThief
+Bobby
+ShovelKnight
+HotlineMiamiOwl
+HotlineMiamiHorse
+HotlineMiamiChicken
+// ====================== 普通怪物ID配置 ======================
+[MobIds]
+LeapingDuelyst
+Shield
+SpikedSatyr
+Shocker
+Golem
+Curser
+Librarian
+Arbiter
+PirateChief
+FatZombie
+Bomber
+
+[ChestMonsters]
+Golem
+Bomber
+
+// ====================== 简单怪物ID配置 ======================
+[EasyMobIds]
+GoldenBatKamikaze
+Fogger
+Zombie
+ExplosiveBarrel
+Worm
+Comboter
+Spinner
+Bomber
+Blobby
+
+// ====================== 近战武器配置 ======================
+[MeleeWeapons]
+DashShield
+StartSword
+AdminWeapon
+QuickSword
+RevengeSword
+BackStabber
+Bleeder
+DualDaggers
+BroadSword
+Shovel
+EvilSword
+BleedCrit
+SpeedBlade
+GiantKiller
+BulletBlade
+SismicBlade
+Spear
+ImpaleSpear
+KingsSpear
+Rapier
+DashSword
+StunMace
+BumpBoots
+SpikedBoots
+MultiKickBoots
+QuickFists
+Whip
+HookWhip
+OilSword
+Burner
+LowHealth
+PerfectHalberd
+BehemothHammer
+TentacleWhip
+Pan
+ParryBlade
+TickScytheLeft
+TickScytheRight
+RhythmicBlade
+Crowbar
+SnakeFang
+GiantStaff
+Lantern
+NotFlyingSword
+Katana
+ExplosiveCrossBowOffHand
+Tombstone
+HeavyAxe
+Club
+ClubBroken
+MachetePistol
+HardLightSword
+PureNail
+SkulBone
+Trident
+HandHook
+Shark
+ElbowBlades
+WreckingBall
+QueenRapier
+CupidityDagger
+GoldDigger
+GoldDiggerEvolved
+KingScepter
+BaseballBat
+NunchuckPan
+Starfury
+TPSword
+WiggleWhip
+Bible
+AreaShield
+ThunderShield
+Rampart
+VampireKiller
+AdeleScythe
+RichterVampireKiller
+CombinedTickScythe
+Pistol
+Scissor
+Comb
+Misericord
+WarriorShield
+DualBow
+InfiniteBow
+LongBow
+SonicCrossbow
+CloseCombatBow
+FastBow
+FrostBow
+ExplosiveCrossBow
+AlchemicGun
+Boomerang
+BleedAxe
+GodAxe
+ThrowingSpear
+MarkBow
+PreciseBow
+ThrowingKnife
+LightningWhip
+ThrowingTorch
+ThrowingIce
+FireBall
+Lightning
+FlameThrower
+Freeze
+MagicSalve
+Blowgun
+BarrelLauncher
+ThrowingCards
+HeavyBow
+MoneyShooter
+MagicBow
+ThrowableStuff
+LaserGlaive
+HydraSpell
+Cross
+ThrowingAxe
+MedusaHead
+Anathema
+
+// 背包道具 - BagItem 类型
+[BagItem]
+GenericKey
+CellMapKey
+CorruptedKey
+CemeteryKey
+CryptKey
+CemSecretKey
+VillageKey
+TowerKey
+TowerSecretKey
+CourtyardKey
+ChristmasKey
+CastleKey
+AstrolabKeyA
+AstrolabKeyB
+AstrolabKeyC
+AstrolabKeyBoss
+ConvertedKey
+ChristmasSkinKey
+PrisonDepthsKey1
+PrisonDepthsKey2
+SewerDepthsKey
+CavernKey
+GreenhouseKey
+DistilleryKey
+LighthouseKey
+StiltStaphyKey
+TridentKey
+ShipwreckKey
+PetrifiedKey
+QuarterUp
+SpecialFlask
+MariaCatKey
+
+// 消耗品 - Consumable 类型
+[Consumable]
+BTUp
+BSUp
+TSUp
+SurvivalStuff
+BrutalityStuff
+TacticStuff
+SmallMeat
+LargeMeat
+SmallVeggie
+LargeVeggie
+SmallMonster
+LargeMonster
+SmallFruit
+LargeFruit
+SmallCastlevania
+LargeCastlevania
+SmallBaguette
+LargeBaguette
+SmallHalfLife
+LargeHalfLife
+SmallCheese
+LargeCheese
+FlaskRefill
+InfectionRemedy
+InfectionRemedySmall
+CellBonus
+
+// 珍贵战利品 - PreciousLoot 类型
+[PreciousLoot]
+LegendGem
+HugeGem
+BigGem
+MediumGem
+SmallGem
+MinorGem
+SpawnerGem
+GreedGem
+CellGold
+GreedArrow
+BigGemScore
+MediumGemScore
+SmallGemScore
+CursedGem
+
+
+
+
