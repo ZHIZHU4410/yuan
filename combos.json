@@ -1,0 +1,20 @@
+[
+  {
+    "name": "默认连招",
+    "hotkey": "f9",
+    "sequence": "j,0.1,0.2;left_click,0.1,0.3;k,0.05,0.1",
+    "repeat": 1
+  },
+  {
+    "name": "武士刀",
+    "hotkey": "1",
+    "sequence": "{jD}{WAITMS:79}{jU}{WAITMS:316}{jD}{WAITMS:10}{SPACED}{WAITMS:64}{lD}{WAITMS:332}{jU}{WAITMS:1}{lU}{WAITMS:62}{SPACEU}{WAITMS:1282}",
+    "repeat": 1
+  },
+  {
+    "name": "原神",
+    "hotkey": "f2",
+    "sequence": "{yD}{WAITMS:98}{uD}{WAITMS:11}{yU}{WAITMS:19}{aD}{WAITMS:53}{uU}{WAITMS:63}{aU}{WAITMS:56}{nD}{WAITMS:83}{nU}{WAITMS:42}{sD}{WAITMS:97}{sU}{WAITMS:31}{hD}{WAITMS:85}{hU}{WAITMS:617}{eD}{WAITMS:108}{eU}{WAITMS:2}{nD}{WAITMS:60}{nU}{WAITMS:310}{nD}{WAITMS:84}{nU}{WAITMS:2}{iD}{WAITMS:87}{iU}{WAITMS:62}{uD}{WAITMS:84}{uU}{WAITMS:127}{bD}{WAITMS:117}{iD}{WAITMS:34}{bU}{WAITMS:62}{iU}{WAITMS:544}{SPACED}{WAITMS:94}{SPACEU}",
+    "repeat": 1
+  }
+]

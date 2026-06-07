@@ -1,0 +1,26 @@
+[
+  {
+    "name": "武士刀",
+    "hotkey": "n",
+    "sequence": "{jD}{WAITMS:79}{jU}{WAITMS:316}{jD}{WAITMS:10}{SPACED}{WAITMS:64}{lD}{WAITMS:332}{jU}{WAITMS:1}{lU}{WAITMS:62}{SPACEU}{WAITMS:1}",
+    "repeat": 1
+  },
+  {
+    "name": "fukong",
+    "hotkey": "y",
+    "sequence": "j,0.1,0.01;0,0.1,0.00",
+    "repeat": 1
+  },
+  {
+    "name": "1",
+    "hotkey": "m",
+    "sequence": "{jD}{WAITMS:79}{jU}{WAITMS:316}{jD}{WAITMS:10}{SPACED}{WAITMS:64}{lD}{WAITMS:332}{lU}{WAITMS:62}{SPACEU}{WAITMS:999}{jU}{WAITMS:1}",
+    "repeat": 1
+  },
+  {
+    "name": "11",
+    "hotkey": "o",
+    "sequence": "j,0.01,0.01;0,0.01,0.01",
+    "repeat": 1
+  }
+]

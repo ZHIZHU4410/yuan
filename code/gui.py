@@ -14,6 +14,7 @@ class GameMacroApp:
         self.root.resizable(True, True)
         self.style = ttk.Style()
         self.style.theme_use('clam')
+        self.style.configure("Treeview", rowheight=28)   # 设置行高为28像素
         self.style.configure("TLabel", font=("Microsoft YaHei", 10))
 
         # 基本功能变量
@@ -59,6 +60,10 @@ class GameMacroApp:
                 lbl.config(text=text, foreground=color)
 
         self.controller = MacroController(getters, set_label)
+        # 设置总开关状态回调
+        self.controller.set_global_switch_callback(self.update_global_switch_display)
+        # 初始显示状态（默认为 True）
+        self.update_global_switch_display(True)
         # 设置连招状态改变回调，安全刷新列表
         self.controller.set_state_changed_callback(
             lambda profile: self.root.after(0, self.refresh_combo_list)
@@ -76,6 +81,8 @@ class GameMacroApp:
         top_bar = ttk.Frame(self.root, padding="10")
         top_bar.pack(fill=tk.X)
         ttk.Label(top_bar, text="我要成为原神高手", font=("Microsoft YaHei", 14, "bold")).pack(side=tk.LEFT)
+        self.global_switch_label = ttk.Label(top_bar, text="连招总开关：开", foreground="green")
+        self.global_switch_label.pack(side=tk.RIGHT, padx=10)
 
         notebook = ttk.Notebook(self.root, padding="10")
         notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
@@ -164,18 +171,20 @@ class GameMacroApp:
         list_frame = ttk.LabelFrame(main_frame, text="连招列表", padding=5)
         list_frame.pack(fill=tk.BOTH, expand=True)
         
-        columns = ("热键", "重复次数", "状态", "序列预览")
+        columns = ("名称", "热键", "重复次数", "状态", "序列预览")
         self.combo_tree = ttk.Treeview(list_frame, columns=columns, show="headings", height=8)
-        
+
+        self.combo_tree.heading("名称", text="名称")
         self.combo_tree.heading("热键", text="热键")
         self.combo_tree.heading("重复次数", text="重复次数")
         self.combo_tree.heading("状态", text="状态")
         self.combo_tree.heading("序列预览", text="序列预览")
-        
-        self.combo_tree.column("热键", width=120)
+
+        self.combo_tree.column("名称", width=120)
+        self.combo_tree.column("热键", width=100)
         self.combo_tree.column("重复次数", width=80)
         self.combo_tree.column("状态", width=80)
-        self.combo_tree.column("序列预览", width=400)
+        self.combo_tree.column("序列预览", width=320)
         
         scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.combo_tree.yview)
         self.combo_tree.configure(yscrollcommand=scrollbar.set)
@@ -240,6 +249,7 @@ class GameMacroApp:
             self.controller.add_combo(profile)
             self.refresh_combo_list()
             self.update_hotkeys()
+            self.save_combos()          # 立即保存
             messagebox.showinfo("成功", f"连招 '{name}' 已创建，热键: {hotkey}")
 
     def edit_combo(self):
@@ -249,9 +259,20 @@ class GameMacroApp:
             messagebox.showwarning("提示", "请先选择一个连招")
             return
         
-        item = self.combo_tree.item(selected[0])
-        profile = item.get('tags', [None])[0]
-        if not profile:
+        values = self.combo_tree.item(selected[0])['values']
+        hotkey_val = values[1] if values and len(values) > 1 else None
+        
+        # 尝试从 tags 获取 profile 对象
+        profile = self.combo_tree.item(selected[0]).get('tags', [None])[0]
+        if not isinstance(profile, ComboProfile):
+            # 后备：根据热键从 self.combos 中查找
+            if hotkey_val:
+                for p in self.combos:
+                    if p.hotkey == hotkey_val:
+                        profile = p
+                        break
+        if not isinstance(profile, ComboProfile):
+            messagebox.showerror("错误", "无法找到对应的连招数据")
             return
         
         dialog = ComboEditDialog(self.root, self.controller, profile)
@@ -275,6 +296,7 @@ class GameMacroApp:
             
             self.refresh_combo_list()
             self.update_hotkeys()
+            self.save_combos()          # 立即保存
             messagebox.showinfo("成功", f"连招 '{name}' 已更新")
 
     def delete_combo(self):
@@ -284,9 +306,18 @@ class GameMacroApp:
             messagebox.showwarning("提示", "请先选择一个连招")
             return
         
-        item = self.combo_tree.item(selected[0])
-        profile = item.get('tags', [None])[0]
-        if not profile:
+        values = self.combo_tree.item(selected[0])['values']
+        hotkey_val = values[1] if values and len(values) > 1 else None
+        
+        profile = self.combo_tree.item(selected[0]).get('tags', [None])[0]
+        if not isinstance(profile, ComboProfile):
+            if hotkey_val:
+                for p in self.combos:
+                    if p.hotkey == hotkey_val:
+                        profile = p
+                        break
+        if not isinstance(profile, ComboProfile):
+            messagebox.showerror("错误", "无法找到对应的连招数据")
             return
         
         if messagebox.askyesno("确认", f"确定要删除连招 '{profile.name}' 吗？"):
@@ -294,6 +325,7 @@ class GameMacroApp:
             self.combos.remove(profile)
             self.refresh_combo_list()
             self.update_hotkeys()
+            self.save_combos()          # 立即保存
 
     def refresh_combo_list(self):
         """刷新连招列表显示"""
@@ -304,7 +336,11 @@ class GameMacroApp:
             status = "运行中" if self.controller.get_combo_state(profile) else "● 已停止"
             preview = profile.sequence[:50] + "..." if len(profile.sequence) > 50 else profile.sequence
             self.combo_tree.insert("", tk.END, values=(
-                profile.hotkey, profile.repeat, status, preview
+                profile.name,          # 新增名称
+                profile.hotkey,
+                profile.repeat,
+                status,
+                preview
             ), tags=(profile,))
         
         # 绑定双击运行/停止
@@ -324,7 +360,7 @@ class GameMacroApp:
             return
         item = self.combo_tree.item(selected[0])
         profile = item.get('tags', [None])[0]
-        if profile:
+        if isinstance(profile, ComboProfile):
             self.controller.toggle_combo(profile)
 
     def load_combos(self):
@@ -373,32 +409,37 @@ class GameMacroApp:
         try:
             with open("combos.json", 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-            messagebox.showinfo("成功", "连招配置已保存")
         except Exception as e:
             messagebox.showerror("错误", f"保存失败: {e}")
 
+    # 在 GameMacroApp 类中修改 parse_hotkey 方法
     def parse_hotkey(self, s):
-        """解析热键字符串"""
         s = s.lower().strip()
         if s.startswith('f') and s[1:].isdigit():
-            return f'<{s}>'
+            return f'<{s}>'      # 保留此转换
         return s
+    
+    def update_global_switch_display(self, enabled):
+        """更新界面上的总开关状态显示"""
+        if enabled:
+            self.global_switch_label.config(text="🔓 连招总开关：开", foreground="green")
+        else:
+            self.global_switch_label.config(text="🔒 连招总开关：关", foreground="red")
 
+    # 在 update_hotkeys 方法中添加 F1 映射
     def update_hotkeys(self):
-        """更新所有热键映射"""
         try:
-            # 构建映射字典
             mapping = {
                 self.parse_hotkey(self.hotkey_click.get()): self.controller.toggle_click,
                 self.parse_hotkey(self.hotkey_move.get()): self.controller.toggle_move,
                 self.parse_hotkey(self.hotkey_rot.get()): self.controller.toggle_rotate,
+                # 添加全局总开关 F1
+                self.parse_hotkey('f1'): self.controller.toggle_global_switch,   # 改为总开关
             }
-            
             # 添加所有连招的热键
             for profile in self.combos:
                 hotkey = self.parse_hotkey(profile.hotkey)
                 mapping[hotkey] = lambda p=profile: self.controller.toggle_combo(p)
-            
             self.controller.register_hotkeys(mapping)
             self.btn_save.config(text="✅ 热键已生效，可切入游戏使用")
             self.root.after(3000, lambda: self.btn_save.config(text="💾 保存并应用所有热键"))

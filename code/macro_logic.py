@@ -38,6 +38,22 @@ class MacroController:
         
         # 状态改变回调
         self.state_changed_callback = None
+        # 全局连招总开关，默认开启
+        self.global_switch = True
+        self.global_switch_callback = None
+    def toggle_global_switch(self):
+        """切换总开关状态，关闭时会停止所有连招，开启时仅恢复热键响应"""
+        self.global_switch = not self.global_switch
+        if not self.global_switch:
+            # 总开关关闭时，立即停止所有正在运行的连招
+            self.stop_all_combos()
+        # 通知 UI 更新显示
+        if self.global_switch_callback:
+            self.global_switch_callback(self.global_switch)
+
+    def set_global_switch_callback(self, callback):
+        """设置总开关状态改变时的回调，参数为 enabled (bool)"""
+        self.global_switch_callback = callback
 
     def set_state_changed_callback(self, callback):
         """设置连招状态改变时的回调函数，回调参数为 profile"""
@@ -78,7 +94,10 @@ class MacroController:
         return hotkey in self.combo_map
 
     def toggle_combo(self, profile):
-        """切换连招运行状态"""
+        """切换连招运行状态（受全局总开关影响）"""
+        if not self.global_switch:
+            # 总开关关闭时，连招热键无效
+            return
         if profile.is_running:
             self.stop_combo(profile)
         else:
@@ -110,6 +129,61 @@ class MacroController:
         if self.state_changed_callback:
             self.state_changed_callback(profile)
 
+    # ---------- 新增：将字符串键名转换为 pynput 键对象 ----------
+    def _str_to_key(self, key_str):
+        """将字符串键名转换为 pynput 可接受的键对象（单个字符或 Key 枚举）"""
+        if key_str is None:
+            return None
+        # 长度==1的普通字符
+        if len(key_str) == 1:
+            return key_str.lower()   # pynput 接受小写字母
+        # 特殊键映射表
+        special_map = {
+            'SPACE': keyboard.Key.space,
+            'ENTER': keyboard.Key.enter,
+            'RETURN': keyboard.Key.enter,
+            'SHIFT': keyboard.Key.shift,
+            'LSHIFT': keyboard.Key.shift_l,
+            'RSHIFT': keyboard.Key.shift_r,
+            'CTRL': keyboard.Key.ctrl,
+            'LCTRL': keyboard.Key.ctrl_l,
+            'RCTRL': keyboard.Key.ctrl_r,
+            'ALT': keyboard.Key.alt,
+            'LALT': keyboard.Key.alt_l,
+            'RALT': keyboard.Key.alt_r,
+            'WIN': keyboard.Key.cmd,
+            'BACKSPACE': keyboard.Key.backspace,
+            'TAB': keyboard.Key.tab,
+            'CAPSLOCK': keyboard.Key.caps_lock,
+            'DELETE': keyboard.Key.delete,
+            'HOME': keyboard.Key.home,
+            'END': keyboard.Key.end,
+            'PAGEUP': keyboard.Key.page_up,
+            'PAGEDOWN': keyboard.Key.page_down,
+            'UP': keyboard.Key.up,
+            'DOWN': keyboard.Key.down,
+            'LEFT': keyboard.Key.left,
+            'RIGHT': keyboard.Key.right,
+            'F1': keyboard.Key.f1,
+            'F2': keyboard.Key.f2,
+            'F3': keyboard.Key.f3,
+            'F4': keyboard.Key.f4,
+            'F5': keyboard.Key.f5,
+            'F6': keyboard.Key.f6,
+            'F7': keyboard.Key.f7,
+            'F8': keyboard.Key.f8,
+            'F9': keyboard.Key.f9,
+            'F10': keyboard.Key.f10,
+            'F11': keyboard.Key.f11,
+            'F12': keyboard.Key.f12,
+        }
+        up_key = key_str.upper()
+        if up_key in special_map:
+            return special_map[up_key]
+        # 如果无法映射，回退为小写字符串
+        return key_str.lower()
+
+    # ---------- 连招工作线程 ----------
     def combo_worker(self, profile):
         """连招工作线程"""
         raw_seq = profile.sequence.strip()
@@ -140,9 +214,13 @@ class MacroController:
                 
                 try:
                     if typ == 'key_down':
-                        kb_controller.press(param)
+                        key = self._str_to_key(param)
+                        if key is not None:
+                            kb_controller.press(key)
                     elif typ == 'key_up':
-                        kb_controller.release(param)
+                        key = self._str_to_key(param)
+                        if key is not None:
+                            kb_controller.release(key)
                     elif typ == 'mouse_down':
                         btn = mouse_btn_map.get(param)
                         if btn:
@@ -163,6 +241,7 @@ class MacroController:
         if self.state_changed_callback:
             self.state_changed_callback(profile)
 
+    # ---------- 解析简单格式 ----------
     def parse_simple_macro(self, text):
         """解析简单格式的连招 (分号分隔)"""
         items = text.split(';')
@@ -201,12 +280,15 @@ class MacroController:
         
         return steps
 
+    # ---------- 解析花括号高级格式（扩展支持 D/U 后缀） ----------
     def parse_raw_macro(self, text):
-        """解析花括号格式的连招"""
+        """解析花括号格式的连招，扩展支持 {KeyD}/{KeyU} 和特殊键名"""
         steps = []
         i = 0
         n = len(text)
+        # 鼠标专有指令（不应被键盘D/U解析器干扰）
         mouse_buttons = {'LMB': 'left', 'RMB': 'right', 'MMB': 'middle'}
+        mouse_down_ups = {'LMBD', 'LMBU', 'RMBD', 'RMBU', 'MMBD', 'MMBU'}
         
         while i < n:
             if text[i] == '{':
@@ -216,62 +298,68 @@ class MacroController:
                 cmd = text[i+1:j].strip()
                 i = j + 1
                 
+                # 1. 等待指令
                 if cmd.startswith('WAITMS:'):
                     ms = int(cmd.split(':')[1])
                     steps.append(('wait', None, ms / 1000.0))
+                
+                # 2. HOLDMS:xxx 指令（保持一个键）
                 elif cmd.startswith('HOLDMS:'):
                     parts = cmd.split(':')
                     ms = int(parts[1])
+                    # 跳过空白
                     while i < n and text[i] in (' ', '\t', '\r', '\n'):
                         i += 1
                     if i < n and text[i] != '{':
-                        key = text[i]
+                        key_char = text[i]
                         i += 1
                     else:
-                        key = None
-                    if key:
-                        steps.append(('key_down', key, 0))
+                        key_char = None
+                    if key_char:
+                        steps.append(('key_down', key_char, 0))
                         steps.append(('wait', None, ms / 1000.0))
-                        steps.append(('key_up', key, 0))
+                        steps.append(('key_up', key_char, 0))
+                
+                # 3. 鼠标操作（单击、按下、抬起）
                 elif cmd in mouse_buttons:
                     btn = mouse_buttons[cmd]
                     steps.append(('mouse_down', btn, 0))
                     steps.append(('mouse_up', btn, 0))
-                elif cmd == 'LMBD':
-                    steps.append(('mouse_down', 'left', 0))
-                elif cmd == 'LMBU':
-                    steps.append(('mouse_up', 'left', 0))
-                elif cmd == 'RMBD':
-                    steps.append(('mouse_down', 'right', 0))
-                elif cmd == 'RMBU':
-                    steps.append(('mouse_up', 'right', 0))
-                elif cmd == 'MMBD':
-                    steps.append(('mouse_down', 'middle', 0))
-                elif cmd == 'MMBU':
-                    steps.append(('mouse_up', 'middle', 0))
-                elif len(cmd) == 1:
-                    steps.append(('key_down', cmd, 0))
-                    steps.append(('key_up', cmd, 0))
+                elif cmd in mouse_down_ups:
+                    if cmd == 'LMBD':
+                        steps.append(('mouse_down', 'left', 0))
+                    elif cmd == 'LMBU':
+                        steps.append(('mouse_up', 'left', 0))
+                    elif cmd == 'RMBD':
+                        steps.append(('mouse_down', 'right', 0))
+                    elif cmd == 'RMBU':
+                        steps.append(('mouse_up', 'right', 0))
+                    elif cmd == 'MMBD':
+                        steps.append(('mouse_down', 'middle', 0))
+                    elif cmd == 'MMBU':
+                        steps.append(('mouse_up', 'middle', 0))
+                
+                # 4. 键盘操作：支持 {KeyD} 按下, {KeyU} 抬起, 以及 {Key} 单击
+                else:
+                    # 检查是否是 D 或 U 结尾的键盘指令
+                    if len(cmd) >= 2 and cmd[-1] in ('D', 'U'):
+                        key = cmd[:-1]          # 去掉最后一个字母
+                        if cmd[-1] == 'D':
+                            steps.append(('key_down', key, 0))
+                        else:  # 'U'
+                            steps.append(('key_up', key, 0))
+                    elif len(cmd) == 1:
+                        # 单字符键：按下并立即抬起（单击）
+                        steps.append(('key_down', cmd, 0))
+                        steps.append(('key_up', cmd, 0))
+                    else:
+                        # 其他未知指令忽略（可打印警告）
+                        pass
             else:
                 i += 1
         
         return steps
 
-    def register_hotkeys(self, mapping):
-        """注册全局热键"""
-        if self.hotkey_listener:
-            try:
-                self.hotkey_listener.stop()
-            except Exception:
-                pass
-        
-        try:
-            self.hotkey_listener = keyboard.GlobalHotKeys(mapping)
-            self.hotkey_listener.start()
-        except Exception as e:
-            raise
-
-    # ========== 连点功能 ==========
     def toggle_click(self):
         state = not self.running_states['click']
         self.running_states['click'] = state
@@ -291,7 +379,19 @@ class MacroController:
             except Exception:
                 break
 
-    # ========== 平移功能 ==========
+    def stop_all_combos(self):
+        """停止所有连招"""
+        for profile in self.combos:
+            if profile.is_running:
+                self.stop_combo(profile)
+
+    def start_all_combos(self):
+        """启动所有连招"""
+        for profile in self.combos:
+            if not profile.is_running:
+                self.start_combo(profile)
+
+    # ========== 基础功能：平移 ==========
     def toggle_move(self):
         state = not self.running_states['move']
         self.running_states['move'] = state
@@ -327,7 +427,7 @@ class MacroController:
                 break
             time.sleep(SLEEP_INTERVAL)
 
-    # ========== 视角旋转功能 ==========
+    # ========== 基础功能：视角旋转 ==========
     def toggle_rotate(self):
         state = not self.running_states['rotate']
         self.running_states['rotate'] = state
@@ -358,6 +458,21 @@ class MacroController:
             except Exception:
                 break
             time.sleep(SLEEP_INTERVAL)
+
+    # ========== 热键注册 ==========
+    def register_hotkeys(self, mapping):
+        """注册全局热键"""
+        if self.hotkey_listener:
+            try:
+                self.hotkey_listener.stop()
+            except Exception:
+                pass
+        
+        try:
+            self.hotkey_listener = keyboard.GlobalHotKeys(mapping)
+            self.hotkey_listener.start()
+        except Exception as e:
+            raise
 
     def stop_all(self):
         """停止所有功能"""
